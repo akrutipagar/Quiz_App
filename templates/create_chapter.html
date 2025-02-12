@@ -1,0 +1,37 @@
+<html>
+    <body>
+        <h2><b>Create Chapter</b></h2>
+
+        <form action="{{url_for('create_chapter',subject_id=subject.id)}}" method="POST">
+            <div class ="form-group">
+                <label for="subject">Select Subject</label>
+                <select name="subject.id" required>
+                
+                
+                {% for sub in subject%}
+                <option value ="{{sub.id}}">{{sub.name}}</option>
+                {% endfor%}
+                
+            </select>
+            </div>
+            <div class ="form-group">
+                <label>Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class ="form-group">
+                <label>Description</label>
+                <input type="text" name="description" class="form-control">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    </body>
+</html>
