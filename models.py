@@ -22,6 +22,27 @@ class Chapter(db.Model):
     subject_id=db.Column(db.Integer,db.ForeignKey('subject.id',ondelete="CASCADE"),nullable=False)
     name=db.Column(db.String(100),nullable=False)
     description=db.Column(db.String(250),nullable=True)
+    quiz=db.relationship('Quiz',backref='chapter',cascade='all,delete')
+
+class Quiz(db.Model):
+    id=db.Column(db.Integer,primary_key=True,nullable=False,autoincrement=True)
+    name=db.Column(db.String(100),nullable=False)
+    chapter_id=db.Column(db.Integer,db.ForeignKey('chapter.id',ondelete="CASCADE"),nullable=False)
+    remarks=db.Column(db.String(300),nullable=True)
+    question=db.relationship('Question',backref='quiz')
+
+class Question(db.Model):
+     id=db.Column(db.Integer,primary_key=True,nullable=False,autoincrement=True)
+     quiz_id=db.Column(db.Integer,db.ForeignKey('quiz.id',ondelete="CASCADE"),nullable=False)
+     statement=db.Column(db.Text,nullable=False)
+     option_1=db.Column(db.String(200),nullable=False)
+     option_2=db.Column(db.String(200),nullable=False)
+     option_3=db.Column(db.String(200),nullable=False)
+     option_4=db.Column(db.String(200),nullable=False)
+     correct_answer=db.Column(db.String(200),nullable=False)
+
+    
+
 
     
 

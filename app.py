@@ -1,15 +1,13 @@
 from flask import url_for,redirect,render_template,request,Flask,flash,session
 from flask_login import login_manager,LoginManager
 from flask_sqlalchemy import SQLAlchemy
-from models import User,Subject,Chapter
+from models import User,Subject,Chapter,Quiz,Question
 from models import db
 
 app=Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']="sqlite:///quiz_app.db"
 app.secret_key="akruti99"
-login_manager=LoginManager(app)
-login_manager.login_view='login'
-login_manager.init_app(app)
+
 db.init_app(app)
 
 
@@ -26,9 +24,11 @@ with app.app_context():
 
 
 
-@login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    user_id=session.get('user_id')
+    if user_id:
+        return User.query.get(int(user_id))
+    return None
 
 @app.route('/')
 def home():
@@ -46,6 +46,7 @@ def login():
             if user.username=='admin' and user.password=='akruti123':
                 return redirect(url_for('admin_dashboard'))
             else:
+               session['user_id']=user.id
                return redirect(url_for('user_dashboard'))
             
         else:
@@ -74,12 +75,14 @@ def register():
 @app.route('/admin/dashboard',methods=['GET','POST'])
 def admin_dashboard():
     subject=Subject.query.all()
+    
     user=User.query.filter(User.username!='admin').all()
     return render_template('admin_dashboard.html',user=user,subject=subject)
 
 @app.route('/admin/subject',methods=['GET','POST'])
 def create_new_subject():
    return render_template('create_subject.html')
+
 @app.route('/admin/create_new_subject',methods=['GET','POST'])
 def create_subject():
     name=request.form.get('name')
@@ -102,42 +105,147 @@ def edit_subject(subject_id):
 @app.route('/admin/delete/<int:subject_id>',methods=["GET","POST"])
 def delete_subject(subject_id):
     subject=Subject.query.get(subject_id)
-    if not subject:
-        flash ('no such subject exists')
-        redirect(url_for('admin_dashboard'))
-    else:
-        Chapter.query.filter_by(subject_id=subject_id).delete()
-        db.session.delete(subject)
-        db.session.commit()
-        return redirect(url_for('admin_dashboard'))
-    return render_template('edit_subject.html',subject=subject)
+    
+    for chap in subject.chapter:
+        for quiz in chap.quiz:
+            for question in quiz.question:
+                db.session.delete(question)
+            db.session.delete(quiz)
+        db.session.delete(chap)
+    db.session.delete(subject)
+    db.session.commit()
+    return redirect(url_for('admin_dashboard'))
+    
 
 
-@app.route('/admin/chapter',methods=['GET','POST'])
-def create_chapter():
-    subject=Subject.query.all()
+@app.route('/admin/chapter/<int:subject_id>',methods=['GET','POST'])
+def create_chapter(subject_id):
+    
+    subject=Subject.query.get(subject_id)
     if request.method=="POST":
-     subject_id=request.form.get('subject.id')
+    
      name=request.form.get('name')
      description=request.form.get('description')
      chapter=Chapter(subject_id=subject_id,name=name,description=description)
      db.session.add(chapter)
      db.session.commit()
-     return redirect(url_for('admin_dashboard')) 
+     return redirect(url_for('edit_subject',subject_id=subject_id)) 
     return render_template('create_chapter.html',subject=subject)
 
-@app.route('/admin/edit_chapter/<int:subject_id>',methods=["GET","POST"])
-def edit_chapter(subject_id):
-    chapter=Chapter.query.get(subject_id)
+@app.route('/admin/edit_chapter/<int:chapter_id>/<int:subject_id>',methods=["GET","POST"])
+def edit_chapter(chapter_id,subject_id):
+    chapter=Chapter.query.get(chapter_id)
+    subject=Subject.query.get(subject_id)
     if request.method=="POST":
         chapter.name=request.form.get('name')
         chapter.description=request.form.get('description')
         db.session.commit()
-        return redirect(url_for('admin_dashboard'))
-    return render_template('edit_chapter.html',chapter=chapter)
+        return redirect(url_for('edit_subject',subject_id=subject_id))
+    return render_template('edit_chapter.html',subject=subject,chapter=chapter)
+
+@app.route('/admin/delete_chapter/<int:chapter_id>/<int:subject_id>',methods=["POST","GET"])
+def delete_chapter(chapter_id,subject_id):
+    chapter=Chapter.query.get(chapter_id)
+    
+    for i in chapter.quiz:
+        for j in i.question:
+            db.session.delete(j)
+        db.session.delete(i)
+    
+    db.session.delete(chapter)
+    db.session.commit()
+    return redirect(url_for('edit_subject',subject_id=subject_id))
+
+@app.route('/user_dashboard',methods=['GET','POST'])
+def user_dashboard():
+    user_id=User.query.get(session['user_id'])
+    subject=Subject.query.all()
+    return render_template('user_dashboard.html',user=user_id,subject=subject)
+
+@app.route('/admin/create_quiz/<int:chapter_id>/<int:subject_id>',methods=["GET","POST"])
+def create_quiz(chapter_id,subject_id):
+    
+    chapter=Chapter.query.get(chapter_id)
+    subject=Subject.query.get(subject_id)
+    if request.method=="POST":
+        name=request.form.get('name')
+        
+        
+        remarks=request.form.get('remarks')
+        quiz = Quiz(name=name,chapter_id=chapter.id,remarks=remarks)
+        db.session.add(quiz)
+        db.session.commit()
+        return redirect(url_for('edit_subject',subject_id=subject_id))
+    return render_template('create_new_quiz.html',chapter=chapter,subject=subject)
+
+@ app.route('/admin/editquiz/<int:quiz_id>/<int:subject_id>',methods=["GET","POST"])
+def edit_quiz(quiz_id,subject_id):
+    quiz=Quiz.query.get(quiz_id)
+    subject=Subject.query.get(subject_id)
+    if request.method=='POST':
+        quiz.name=request.form.get('name')
+        quiz.remarks=request.form.get('remarks')
+        db.session.commit()
+        return redirect(url_for('edit_subject',subject_id=subject_id))
+    return render_template('edit_quiz.html',quiz=quiz,subject=subject)
+
+@app.route('/admin/deletequiz/<int:quiz_id>,<int:subject_id>',methods=["POST","GET"])
+def delete_quiz(quiz_id,subject_id):
+    quiz=Quiz.query.get(quiz_id)
+    
+    for question in quiz.question:
+        db.session.delete(question)
+    db.session.delete(quiz)
+    db.session.commit()
+    return redirect(url_for('edit_subject',subject_id=subject_id))
 
 
+@app.route('/admin/addquestion/<int:subject_id>/<int:quiz_id>',methods=["POST",'GET'])
+def add_question(quiz_id,subject_id):
+    quiz=Quiz.query.get(quiz_id)
+    subject=Subject.query.get(subject_id)
+    
+    if request.method=="POST":
+        statement=request.form.get('statement')
+        option_1=request.form.get('option_1')
+        option_2=request.form.get('option_2')
+        option_3=request.form.get('option_3')
+        option_4=request.form.get('option_4')
+        correct_answer=request.form.get('correct_answer')
+        question=Question(quiz_id=quiz_id,statement=statement,option_1=option_1,option_2=option_2,option_3=option_3,option_4=option_4,correct_answer=correct_answer)
+        db.session.add(question)
+        db.session.commit()
+        return redirect(url_for('edit_subject',subject_id=subject_id))
+    return render_template('create_question.html',subject=subject,quiz=quiz)
+    
 
+
+@app.route('/admin/addquestion/<int:subject_id>/<int:quiz_id>/<int:question_id>',methods=["POST",'GET'])
+def edit_question(quiz_id,subject_id,question_id):
+    question=Question.query.get(question_id)
+    quiz=Quiz.query.get(quiz_id)
+    subject=Subject.query.get(subject_id)
+    if request.method=="POST":
+        question.statement=request.form.get('statement')
+        question.option_1=request.form.get('option_1')
+        question.option_2=request.form.get('option_2')
+        question.option_3=request.form.get('option_3')
+        question.option_4=request.form.get('option_4')
+        question.correct_answer=request.form.get('correct_answer')
+       
+      
+        db.session.commit()
+        return redirect(url_for('edit_subject',subject_id=subject_id))
+    return render_template('edit_question.html',quiz=quiz,subject=subject,question=question)
+    
+
+@app.route('/admin/delete_question/<int:subject_id>/<int:quiz_id>/<int:question_id>',methods=["POST",'GET'])
+def delete_question(subject_id,quiz_id,question_id):
+    
+    question=Question.query.get(question_id)
+    db.session.delete(question)
+    db.session.commit()
+    return redirect(url_for('edit_subject',subject_id=subject_id))
 
 
 
@@ -159,6 +267,6 @@ def logout():
 
 
 if __name__=='__main__':
-    print(app.url_map)
+    
     app.run(debug=True)
 

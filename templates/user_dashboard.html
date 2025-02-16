@@ -1,0 +1,24 @@
+<html>
+    <body>
+        <style>
+            h1{
+                text-align: center;
+            }
+        </style>
+        <title>UserDashboard</title>
+        
+        <h1>Welcome {{user.fullname}}</h1>
+
+        <h3>Available Subjects</h3>
+        {% for sub in subject%}
+        <ul>
+            <li>
+                <p> {{sub.name}}</p>
+            </li>
+
+        </ul>
+        
+        {% endfor %}
+        
+    </body>
+</html>

@@ -3,17 +3,7 @@
         <h2><b>Create Chapter</b></h2>
 
         <form action="{{url_for('create_chapter',subject_id=subject.id)}}" method="POST">
-            <div class ="form-group">
-                <label for="subject">Select Subject</label>
-                <select name="subject.id" required>
-                
-                
-                {% for sub in subject%}
-                <option value ="{{sub.id}}">{{sub.name}}</option>
-                {% endfor%}
-                
-            </select>
-            </div>
+            <input type="hidden" name="subject_id" value="{{subject_id}}">
             <div class ="form-group">
                 <label>Name</label>
                 <input type="text" name="name" class="form-control" required>
@@ -35,3 +25,7 @@
     {% endwith %}
     </body>
 </html>
+
+
+
+     
