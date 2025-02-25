@@ -1,0 +1,19 @@
+<h2>User Details</h2>
+                <table border="1">
+                    <tr>
+                        <th>Name</th>
+                        <th>Full Name</th>
+                    </tr>
+                    {% for i in user %}
+                    <tr>
+                        <td>{{i.username}}</td>
+                        <td>{{i.fullname}}</td>
+                    </tr>
+                    {% endfor %}
+                    {% for i in score %}
+                    <tr>
+                        <td>{{i.time_stamp_of_attempt}}</td>
+                        <td>{{i.total_scored}}</td>
+                    </tr>
+                    {% endfor%}
+                </table>

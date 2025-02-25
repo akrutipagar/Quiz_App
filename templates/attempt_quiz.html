@@ -1,0 +1,44 @@
+<html>
+    <h2>{{quiz.name}}</h2>
+    {% if feedback %}
+    <h2>Quiz Feedback</h2>
+    {% for i in feedback%}
+    <li>
+    <p> Question: {{i.question}}</p>
+    <p> Chosen Option: {{i.answer}}</p>
+    <p> Correct Option: {{i.correct_answer}}</p>
+    {% if i.answer==i.correct_answer %}
+    <p><b> You have selected correct option</b></p>
+    {% else %}
+    <p><b> Wronng answer!</b></p>
+    {% endif %}
+    <br>
+    </li>
+    {% endfor %}
+    <a href ="{{url_for('user_dashboard',user=user_id,subject=subject,score=score,previous_quiz_attempts=previous_quiz_attempts)}}"> Return to Dashboard</a>
+
+ {% else %}
+
+    <form action="{{url_for('attempt_quiz',quiz_id=quiz.id)}}" method="POST">
+        {% for i in question%}
+        <h3>{{i.statement}}</h3>
+       <label> <input type="radio" name="{{i.id}}" value="{{i.option_1}}">{{i.option_1}}</label><br>
+        <label><input type="radio" name="{{i.id}}" value="{{i.option_2}}">{{i.option_2}}</label><br>
+            <label><input type="radio" name="{{i.id}}" value="{{i.option_3}}">{{i.option_3}}</label><br>
+                <label><input type="radio" name="{{i.id}}" value="{{i.option_4}}">{{i.option_4}}</label><br>
+        {%endfor%}
+        <button type="submit"> Submit </button>
+    </form>
+    {% endif %}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </ul>
+        
+    {% endif %}
+{% endwith %}
+
+</html>

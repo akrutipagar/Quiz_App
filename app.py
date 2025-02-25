@@ -1,9 +1,8 @@
 from flask import url_for,redirect,render_template,request,Flask,flash,session
-from flask_login import login_manager,LoginManager
 from flask_sqlalchemy import SQLAlchemy
-from models import User,Subject,Chapter,Quiz,Question
+from models import User,Subject,Chapter,Quiz,Question,Score
 from models import db
-
+from datetime import datetime
 app=Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']="sqlite:///quiz_app.db"
 app.secret_key="akruti99"
@@ -74,10 +73,25 @@ def register():
 
 @app.route('/admin/dashboard',methods=['GET','POST'])
 def admin_dashboard():
+    search=request.form.get('search'," ").strip().lower()
     subject=Subject.query.all()
-    
     user=User.query.filter(User.username!='admin').all()
-    return render_template('admin_dashboard.html',user=user,subject=subject)
+    quiz=Quiz.query.all()
+    chapter=Chapter.query.all()
+    question=Question.query.all()
+
+    if search:
+        user=User.query.filter(User.username.ilike(f"%{search}%" )).all()
+        subject=Subject.query.filter(Subject.name.ilike(f"%{search}%" )).all()
+        chapter=Chapter.query.filter(Chapter.name.ilike(f"%{search}%" )).all()
+        quiz=Quiz.query.filter(Quiz.name.ilike(f"%{search}%" )).all()
+    else:
+        user=User.query.all()
+        subject=Subject.query.all()
+        quiz=Quiz.query.all()
+        chapter=Chapter.query.all()
+
+    return render_template('admin_dashboard.html',user=user,subject=subject,quiz=quiz,question=question,chapter=chapter)
 
 @app.route('/admin/subject',methods=['GET','POST'])
 def create_new_subject():
@@ -129,7 +143,7 @@ def create_chapter(subject_id):
      chapter=Chapter(subject_id=subject_id,name=name,description=description)
      db.session.add(chapter)
      db.session.commit()
-     return redirect(url_for('edit_subject',subject_id=subject_id)) 
+     return redirect(url_for('admin_dashboard')) 
     return render_template('create_chapter.html',subject=subject)
 
 @app.route('/admin/edit_chapter/<int:chapter_id>/<int:subject_id>',methods=["GET","POST"])
@@ -140,7 +154,7 @@ def edit_chapter(chapter_id,subject_id):
         chapter.name=request.form.get('name')
         chapter.description=request.form.get('description')
         db.session.commit()
-        return redirect(url_for('edit_subject',subject_id=subject_id))
+        return redirect(url_for('admin_dashboard'))
     return render_template('edit_chapter.html',subject=subject,chapter=chapter)
 
 @app.route('/admin/delete_chapter/<int:chapter_id>/<int:subject_id>',methods=["POST","GET"])
@@ -154,13 +168,9 @@ def delete_chapter(chapter_id,subject_id):
     
     db.session.delete(chapter)
     db.session.commit()
-    return redirect(url_for('edit_subject',subject_id=subject_id))
+    return redirect(url_for('admin_dashboard'))
 
-@app.route('/user_dashboard',methods=['GET','POST'])
-def user_dashboard():
-    user_id=User.query.get(session['user_id'])
-    subject=Subject.query.all()
-    return render_template('user_dashboard.html',user=user_id,subject=subject)
+
 
 @app.route('/admin/create_quiz/<int:chapter_id>/<int:subject_id>',methods=["GET","POST"])
 def create_quiz(chapter_id,subject_id):
@@ -172,10 +182,12 @@ def create_quiz(chapter_id,subject_id):
         
         
         remarks=request.form.get('remarks')
-        quiz = Quiz(name=name,chapter_id=chapter.id,remarks=remarks)
+        duration=datetime.strptime(request.form.get('duration'),'%H:%M').time()
+        quiz = Quiz(name=name,chapter_id=chapter.id,remarks=remarks,duration=duration)
+        
         db.session.add(quiz)
         db.session.commit()
-        return redirect(url_for('edit_subject',subject_id=subject_id))
+        return redirect(url_for('admin_dashboard'))
     return render_template('create_new_quiz.html',chapter=chapter,subject=subject)
 
 @ app.route('/admin/editquiz/<int:quiz_id>/<int:subject_id>',methods=["GET","POST"])
@@ -186,7 +198,7 @@ def edit_quiz(quiz_id,subject_id):
         quiz.name=request.form.get('name')
         quiz.remarks=request.form.get('remarks')
         db.session.commit()
-        return redirect(url_for('edit_subject',subject_id=subject_id))
+        return redirect(url_for('admin_dashboard'))
     return render_template('edit_quiz.html',quiz=quiz,subject=subject)
 
 @app.route('/admin/deletequiz/<int:quiz_id>,<int:subject_id>',methods=["POST","GET"])
@@ -197,7 +209,7 @@ def delete_quiz(quiz_id,subject_id):
         db.session.delete(question)
     db.session.delete(quiz)
     db.session.commit()
-    return redirect(url_for('edit_subject',subject_id=subject_id))
+    return redirect(url_for('admin_dashboard'))
 
 
 @app.route('/admin/addquestion/<int:subject_id>/<int:quiz_id>',methods=["POST",'GET'])
@@ -215,7 +227,7 @@ def add_question(quiz_id,subject_id):
         question=Question(quiz_id=quiz_id,statement=statement,option_1=option_1,option_2=option_2,option_3=option_3,option_4=option_4,correct_answer=correct_answer)
         db.session.add(question)
         db.session.commit()
-        return redirect(url_for('edit_subject',subject_id=subject_id))
+        return redirect(url_for('admin_dashboard'))
     return render_template('create_question.html',subject=subject,quiz=quiz)
     
 
@@ -235,7 +247,7 @@ def edit_question(quiz_id,subject_id,question_id):
        
       
         db.session.commit()
-        return redirect(url_for('edit_subject',subject_id=subject_id))
+        return redirect(url_for('admin_dashbboard'))
     return render_template('edit_question.html',quiz=quiz,subject=subject,question=question)
     
 
@@ -245,7 +257,69 @@ def delete_question(subject_id,quiz_id,question_id):
     question=Question.query.get(question_id)
     db.session.delete(question)
     db.session.commit()
-    return redirect(url_for('edit_subject',subject_id=subject_id))
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/summary',methods=['GET','POST'])
+def summary():
+    user=User.query.filter(User.username!='admin').all()
+    
+    return render_template('summary.html',user=user)
+
+@app.route('/user_dashboard',methods=['GET','POST'])
+def user_dashboard():
+    user_id=User.query.get(session['user_id'])
+    subject=Subject.query.all()
+    score=Score.query.filter_by(user_id=session['user_id']).all()
+    previous_quiz_attempts={}
+    user_id=session.get('user_id')
+    previous_attempt=Score.query.filter_by(user_id=user_id).all()
+    for i in previous_attempt:
+          quiz_name=i.quiz.name
+          if quiz_name in  previous_quiz_attempts:
+            previous_quiz_attempts[quiz_name]+=1
+          else:
+            previous_quiz_attempts[quiz_name]=1
+    return render_template('user_dashboard.html',user=user_id,subject=subject,score=score,previous_quiz_attempts=previous_quiz_attempts)
+
+@app.route('/user/attempt_quiz/<int:quiz_id>',methods=['GET','POST'])
+def attempt_quiz(quiz_id):
+    quiz=Quiz.query.get(quiz_id)
+    question=Question.query.filter_by(quiz_id=quiz.id).all()
+    feedback=[]
+
+
+
+    if request.method=="POST":
+        total_scored =0
+        for i in question:
+            answer=request.form.get(str(i.id))
+            if answer==i.correct_answer:
+                total_scored=total_scored+1
+            
+            feedback.append({
+                'question':i.statement,
+                'answer' : answer,
+                'correct_answer':i.correct_answer
+            })
+            
+        attempt=Score(user_id=session['user_id'],quiz_id=quiz.id,total_scored=total_scored)
+
+        try:
+            db.session.add(attempt)
+            db.session.commit()
+            
+        except Exception as e:
+            db.session.rollback()
+           
+        
+
+        
+        #return redirect(url_for('user_dashboard'))
+    return render_template('attempt_quiz.html',quiz=quiz,question=question,feedback=feedback)
+
+
+
+
 
 
 
@@ -261,8 +335,8 @@ def delete_question(subject_id,quiz_id,question_id):
 @app.route('/logout',methods=['GET','POST'])
 def logout():
     session.pop('username',None)
-    session.pop('is_admin',False)
-    return render_template(url_for('home'))
+    return redirect(url_for('login'))
+
 
 
 

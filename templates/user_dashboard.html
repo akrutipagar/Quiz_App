@@ -1,24 +1,113 @@
 <html>
     <body>
+
+        <head>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
         <style>
-            h1{
+            h1,h3{
                 text-align: center;
             }
         </style>
+         <style>
+            .container{
+                display:flex;
+                align-items:center;
+                gap:5px;
+                padding:1px;
+            }
+        </style>
         <title>UserDashboard</title>
-        
-        <h1>Welcome {{user.fullname}}</h1>
-
+        <a href="{{url_for('logout')}}" class="btn btn-primary ">Logout</a>
+        <h1>Welcome {{user.username}}</h1>
+        <br><br>
         <h3>Available Subjects</h3>
-        {% for sub in subject%}
         <ul>
-            <li>
-                <p> {{sub.name}}</p>
-            </li>
-
-        </ul>
+        {% for sub in subject%}
         
+        <h4 >{{sub.name}}</h4>
+        <br>
+        {% for chap in sub.chapter%}
+        
+        {%for quizzes in chap.quiz%}
+        <li>
+           <p> {{chap.name}}({{quizzes.name}}) :<a href ="{{url_for('attempt_quiz',quiz_id=quizzes.id)}}"> Attempt Quiz</a></p>
+            <br>
+        </li>
+            
+            
         {% endfor %}
         
+        {% endfor %}
+        {% endfor %}
+        </ul>
+
+
+
+        <table class="table table-hover">
+           <table border="10">
+            <thead class="table">
+            <tr>
+                
+                <th>Quiz Name</th>
+                <th> Score</th>
+                <th>Quiz taken At</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                {% for i in score %}
+                <td>{{i.quiz.name}}</td>
+                <td>{{i.total_scored}}</td>
+                <td>{{i.time_stamp_of_attempt}}</td>
+               
+            </tr>
+            {% endfor %}
+        </tbody>
+            
+    </table>
+            
+        </table>
+
+
+<div class="table-responsive">
+    <table border="10">
+        <tr>
+            
+            <th>Quiz Name</th>
+            <th> Attemps</th>
+           
+            
+        </tr>
+
+            
+            {% if previous_quiz_attempts %}
+    {% for  quiz_name,count in previous_quiz_attempts.items()%}
+    <tr>
+        <td>{{quiz_name}}</td>
+        <td> {{count}}</td>
+            </tr>
+            
+{%endfor%}
+{%endif%}
+
+        </table>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </ul>
+        
+
+        {% endif %}
+    {% endwith %}
+    
+    
+
     </body>
 </html>
