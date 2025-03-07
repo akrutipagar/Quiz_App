@@ -15,6 +15,8 @@
     <br>
     </li>
     {% endfor %}
+   
+    <br>
     <a href ="{{url_for('user_dashboard',user=user_id,subject=subject,score=score,previous_quiz_attempts=previous_quiz_attempts)}}"> Return to Dashboard</a>
 
  {% else %}
@@ -30,15 +32,5 @@
         <button type="submit"> Submit </button>
     </form>
     {% endif %}
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                {{ message }}
-            {% endfor %}
-        </ul>
-        
-    {% endif %}
-{% endwith %}
 
 </html>

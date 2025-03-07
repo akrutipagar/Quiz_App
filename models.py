@@ -30,7 +30,6 @@ class Quiz(db.Model):
     name=db.Column(db.String(100),nullable=False)
     chapter_id=db.Column(db.Integer,db.ForeignKey('chapter.id',ondelete="CASCADE"),nullable=False)
     remarks=db.Column(db.String(300),nullable=True)
-    duration=db.Column(db.Time,nullable=False)
     question=db.relationship('Question',backref='quiz',cascade='all,delete')
     score=db.relationship('Score',backref='quiz',cascade='all,delete')
 
@@ -48,8 +47,9 @@ class Score(db.Model):
     id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     user_id=db.Column(db.Integer,db.ForeignKey('user.id',ondelete="CASCADE"),nullable=False)
     quiz_id=db.Column(db.Integer,db.ForeignKey('quiz.id',ondelete="CASCADE"),nullable=False)
-    time_stamp_of_attempt=db.Column(db.DateTime,default=datetime.utcnow)
+    time_stamp_of_attempt=db.Column(db.DateTime,default=datetime.utcnow().replace(microsecond=0))
     total_scored=db.Column(db.Integer,nullable=False)
+    total_question=db.Column(db.Integer,nullable=False)
 
     user=db.relationship('User',backref='score')
    

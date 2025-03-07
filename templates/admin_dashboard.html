@@ -1,114 +1,70 @@
 <html>
-    <body>
-        
-        <link  rel="stylesheet" href="{{url_for('static',filename='styles.css')}}">
-        
-            
-        </body>
+    <style>
+        h2{
+            text-align: center;
+        }
+    </style>
+     <a href="{{url_for('login')}}" > Login |</a> <a href="{{url_for('summary')}}" > Summary |</a>  <a href="{{url_for('logout')}}" >Logout</a><h2 ><b> Admin Dashboard</b></h2>
+      
        
-         <h3 class="text-center"><b> Admin Dashboard</b></h3>
-       
-            <a href="{{url_for('login')}}" class="btn btn-primary "> Login</a>
-            
-            
-           
-            <a href="{{url_for('summary')}}" class="btn btn-primary "> Summary</a>
-            <a href="{{url_for('logout')}}" class="btn btn-primary ">Logout</a>
-
-            
-        
-
-        <form action ="{{url_for('admin_dashboard')}}" method ="POST">
+       <h4>Search for Subjects/Chapters/Quizzes</h4>
+       <form action ="{{url_for('admin_dashboard')}}" method ="POST">
             <input type="text" name ="search" class="form-control" value="{{search}}">
             <button type="submit">Search</button>
         </form>
-       
+        <br>
+       <a href="{{url_for('create_new_subject')}}" >Create Subject</a>
 
-        
-     
-   
-    <a href="{{url_for('create_new_subject')}}" class="btn btn-primary">Create Subject</a>
-
-    
-
-     
-        
     {% for sub in subject%}
-         
+    
+         <h3><u>{{sub.name}}: </u></h3>
+        <a href="{{url_for('edit_subject',subject_id=sub.id)}}"> Edit Subject | </a>
+        
+        <a href="{{url_for('delete_subject',subject_id=sub.id)}}"> Delete | </a>
+        
+        <a href="{{url_for('create_chapter',subject_id=sub.id)}}"> Create chapter  </a>
        
-                
-        <h3>{{sub.name}}: </h3>
-           
+        <h4>Chapter of {{sub.name}} :</h4>
+        <ol>
             
-        <a href="{{url_for('edit_subject',subject_id=sub.id)}}" class ="btn  btn-sm"> Edit | </a>
-        
-        <a href="{{url_for('delete_subject',subject_id=sub.id)}}" class ="btn btn-sm "> Delete |</a>
-        
-        <a href="{{url_for('create_chapter',subject_id=sub.id)}}" class ="btn btn-sm"> Create chapter | </a>
-        
-    
-    
-    
-
-
-
-        
-
         {% for chap in sub.chapter%}
-        <h4>Chapter of {{sub.name}}</h4>
-        <ul>
+        
+        
             
-            <li >
+                <h3><u>{{chap.name}}</u></h3>
                 
-                <h5>{{chap.name}}</h5>
-                
-                    <a href="{{url_for('edit_chapter',subject_id=sub.id,chapter_id=chap.id)}}" class ="btn btn-primary btn-sm"> Edit chapter | </a>
+                    <a href="{{url_for('edit_chapter',subject_id=sub.id,chapter_id=chap.id)}}" > Edit chapter | </a>
                     
-                    <a href="{{url_for('delete_chapter',subject_id=sub.id,chapter_id=chap.id)}}" class ="btn btn-primary btn-sm"> Delete chapter | </a>
+                    <a href="{{url_for('delete_chapter',subject_id=sub.id,chapter_id=chap.id)}}" > Delete chapter | </a>
                     
-                    <a href="{{url_for('create_quiz',subject_id=sub.id,chapter_id=chap.id)}}" class ="btn btn-primary btn-sm"> Create Quiz | </a>
+                    <a href="{{url_for('create_quiz',subject_id=sub.id,chapter_id=chap.id)}}" > Create Quiz  </a>
                     
                 
-            </li>
-            </ul>
-        
-        
-
+            
         
         
         {%for quizzes in chap.quiz%}
-        <h6>Quiz of {{chap.name}}</h6>
-        <ul >
-        <li >
+        <li>
+        <h5>Quiz of {{chap.name}}</h5>
+        
+        
         {{quizzes.name}}
         <div>
-            <a href="{{url_for('edit_quiz',quiz_id=quizzes.id,subject_id=sub.id)}}" class ="btn btn-primary btn-sm"> Edit quiz |  </a>
+            <a href="{{url_for('edit_quiz',subject_id=sub.id,quiz_id=quizzes.id)}}" > Edit quiz & Questions |  </a>
             
-            <a href="{{url_for('delete_quiz',subject_id=sub.id,quiz_id=quizzes.id)}}" class ="btn btn-primary btn-sm"> Delete quiz |</a>
+            <a href="{{url_for('delete_quiz',subject_id=sub.id,quiz_id=quizzes.id)}}" > Delete quiz |</a>
             
-            <a href="{{url_for('add_question',subject_id=sub.id,quiz_id=quizzes.id)}}" class ="btn btn-primary btn-sm"> Add question | </a>
+            <a href="{{url_for('add_question',subject_id=sub.id,quiz_id=quizzes.id)}}" > Add question | </a>
             
         </div>
     </li>
-</ul>
-
-
-{%endfor%}
-
-{% endfor %}
-        
-</div>
-</div>
-</div>
-
-{%endfor%}
-</div>   
-
-      
     
-    
-        
        
-   
+    
 
-</html
+
+{%endfor%}
+{% endfor %}
+</ol>
+{%endfor%}   
+</html>

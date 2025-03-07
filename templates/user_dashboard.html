@@ -9,20 +9,16 @@
                 text-align: center;
             }
         </style>
-         <style>
-            .container{
-                display:flex;
-                align-items:center;
-                gap:5px;
-                padding:1px;
-            }
-        </style>
+        
         <title>UserDashboard</title>
-        <a href="{{url_for('logout')}}" class="btn btn-primary ">Logout</a>
-        <h1>Welcome {{user.username}}</h1>
+        <a href="{{url_for('logout')}} ">Logout</a>
+        <h1>Welcome {{user.fullname}} </h1>
+        <h1></h1>
         <br><br>
+       {% if subject %}
         <h3>Available Subjects</h3>
         <ul>
+            
         {% for sub in subject%}
         
         <h4 >{{sub.name}}</h4>
@@ -31,26 +27,38 @@
         
         {%for quizzes in chap.quiz%}
         <li>
+        {% if quizzes.question %}
+      
+           
            <p> {{chap.name}}({{quizzes.name}}) :<a href ="{{url_for('attempt_quiz',quiz_id=quizzes.id)}}"> Attempt Quiz</a></p>
             <br>
         </li>
+
             
-            
+            {%else%}
+            <p> {{chap.name}}({{quizzes.name}}) :No questions avaliable</p>
+        
+        {% endif %}
         {% endfor %}
         
         {% endfor %}
         {% endfor %}
+       {% endif %}
+       
         </ul>
+       
 
-
-
-        <table class="table table-hover">
-           <table border="10">
-            <thead class="table">
+        {% if score %}
+        <table class="table table-bordered table-striped text-center">
+           
+            <thead>
+                <br>
             <tr>
-                
-                <th>Quiz Name</th>
+                <th> Subject</th>
+                <th>Chapter</th>
+                <th>Quiz </th>
                 <th> Score</th>
+                <th> Out Of </th>
                 <th>Quiz taken At</th>
                 
             </tr>
@@ -58,8 +66,12 @@
             <tbody>
             <tr>
                 {% for i in score %}
-                <td>{{i.quiz.name}}</td>
+                <td>{{(i.quiz.chapter.subject.name)}}</td>
+                <td>{{(i.quiz.chapter.name)}}</td>
+                <td>{{i.quiz.name}} </td>
+                
                 <td>{{i.total_scored}}</td>
+                <td>{{i.total_question}}</td>
                 <td>{{i.time_stamp_of_attempt}}</td>
                
             </tr>
@@ -67,45 +79,33 @@
         </tbody>
             
     </table>
-            
-        </table>
+        {% endif %}    
+     
 
 
-<div class="table-responsive">
-    <table border="10">
+{% if previous_quiz_attempts %}
+    <table class="table table-bordered">
         <tr>
-            
+           
             <th>Quiz Name</th>
             <th> Attemps</th>
            
-            
         </tr>
-
-            
-            {% if previous_quiz_attempts %}
+    {% if previous_quiz_attempts %}
     {% for  quiz_name,count in previous_quiz_attempts.items()%}
     <tr>
+       
         <td>{{quiz_name}}</td>
         <td> {{count}}</td>
-            </tr>
+    </tr>
             
 {%endfor%}
 {%endif%}
 
         </table>
-        </div>
         
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                    {{ message }}
-                {% endfor %}
-            </ul>
-        
-
-        {% endif %}
-    {% endwith %}
+        {% endif%}      
+       
     
     
 
