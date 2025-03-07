@@ -1,7 +1,6 @@
 from flask import url_for,redirect,render_template,request,Flask,flash,session
 from models import User,Subject,Chapter,Quiz,Question,Score
 from models import db
-from datetime import datetime
 import os
 app=Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']="sqlite:///quiz_app.db"
@@ -246,7 +245,7 @@ def edit_question(quiz_id,subject_id,question_id):
         question.option_4=request.form.get('option_4')
         question.correct_answer=request.form.get('correct_answer')
         db.session.commit()
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('edit_quiz',quiz_id=quiz_id,subject_id=subject_id))
     return render_template('edit_question.html',quiz=quiz,subject=subject,question=question)
     
 

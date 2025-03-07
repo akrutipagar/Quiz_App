@@ -12,32 +12,23 @@
         
     </form>
     
-    <form action="{{url_for('delete_quiz',quiz_id=quiz.id,subject_id=subject.id)}}" method ="POST">
-        <button type='submit'> Delete Quiz </button>
-    </form>
-          
-    <h4>Chapters of {{subject.name}}:</h4>
+   
+    <br><br>  
+    <h4>Questions</h4>
    {% if subject.chapter%}
             {% for chap in subject.chapter%}
                 {% if chap.quiz %}
-                <p><b>Quiz of {{chap.name}}</b></p>
                 {% for quizzes in chap.quiz%}
-
-               
-            <br>
             {% if quizzes.question%}
-            Question of {{quizzes.name}}
-            <br><br>
             {%for question in quizzes.question%}
-            <div class =container>
+           
             {{question.statement}}:
             
             <button><a href ="{{url_for('edit_question',subject_id=subject.id,quiz_id=quizzes.id,question_id=question.id)}}">Edit</a></button> <button><a href="{{url_for('delete_question',question_id=question.id,quiz_id=quizzes.id,subject_id=subject.id)}}">Delete </a></button>
-        </div>
+      
             {%endfor%}
-               
                {% else %}
-                <p> No quizzes Available</p>
+                <p> No Questions Available</p>
                 {% endif %}
                 {%endfor%}
                 {% endif %}
