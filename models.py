@@ -1,7 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+
+
 db=SQLAlchemy()
+
+
 
 class User(db.Model):
     id=db.Column(db.Integer,primary_key=True,nullable=False,autoincrement=True)
@@ -47,7 +51,7 @@ class Score(db.Model):
     id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     user_id=db.Column(db.Integer,db.ForeignKey('user.id',ondelete="CASCADE"),nullable=False)
     quiz_id=db.Column(db.Integer,db.ForeignKey('quiz.id',ondelete="CASCADE"),nullable=False)
-    time_stamp_of_attempt=db.Column(db.DateTime,default=datetime.utcnow().replace(microsecond=0))
+    time_stamp_of_attempt=db.Column(db.DateTime,default= datetime.now().replace(microsecond=0))
     total_scored=db.Column(db.Integer,nullable=False)
     total_question=db.Column(db.Integer,nullable=False)
 
